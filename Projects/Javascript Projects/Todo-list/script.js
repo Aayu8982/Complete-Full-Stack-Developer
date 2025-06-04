@@ -1,62 +1,50 @@
-const itemInput = document.querySelector("#item");
+const item = document.querySelector("#item");
 const toDoBox = document.querySelector("#todo-box");
+let todos = []
 
-let todos = loadTodosFromLocalStorage();
-
-itemInput.addEventListener("keyup", function (event) {
-  if (event.key === "Enter" && this.value.trim() !== "") {
-    const trimmedValue = this.value.trim();
-    addToDo(trimmedValue);
+item.addEventListener("keyup", function (event) {
+  if (event.key == "Enter") {
+    addToDo(this.value);
     this.value = "";
   }
 });
 
-// Add To-Do Item
-function addToDo(todoText) {
-  const listItem = document.createElement("li");
-  listItem.innerHTML = `
-    ${todoText}
+const addToDo = (item) => {
+  const listitem = document.createElement("li");
+
+  listitem.innerHTML = `
+    ${item}
     <i class="fas fa-times"></i>
   `;
 
-  listItem.addEventListener("click", () => {
-    listItem.classList.toggle("done");
+  listitem.addEventListener("click", function () {
+    this.classList.toggle("done");
   });
 
-  listItem.querySelector("i").addEventListener("click", (e) => {
+  listitem.querySelector("i").addEventListener("click", function (e) {
     e.stopPropagation();
-    removeToDo(todoText, listItem);
+    listitem.remove();
+
+    // Remove item from todos array
+    todos = todos.filter(todo => todo !== item);
+    console.log(todos)
+
+    // Update localStorage
+    localStorage.setItem('todos', JSON.stringify(todos));
   });
 
-  toDoBox.appendChild(listItem);
-  todos.push(todoText);
-  updateLocalStorage();
-}
+  todos.push(item);
+  localStorage.setItem('todos', JSON.stringify(todos));
 
-// Remove To-Do Item
-function removeToDo(todoText, listItem) {
-  todos = todos.filter(todo => todo !== todoText);
-  listItem.remove();
-  updateLocalStorage();
-}
+  toDoBox.appendChild(listitem);
+};
 
-// Load todos from localStorage
-function loadTodosFromLocalStorage() {
-  try {
-    const data = localStorage.getItem("todos");
-    return data ? JSON.parse(data) : [];
-  } catch (e) {
-    console.error("Failed to load todos:", e);
-    return [];
-  }
-}
 
-// Update localStorage
-function updateLocalStorage() {
-  localStorage.setItem("todos", JSON.stringify(todos));
-}
+(function(){
+    const todoList = localStorage.getItem('todos');
+    console.log(todos)
+    JSON.parse(todoList).forEach((todo)=>{
+        addToDo(todo)
+    })
 
-// Initialize
-(function initializeToDos() {
-  todos.forEach(todo => addToDo(todo));
-})();
+})()
